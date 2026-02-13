@@ -1,0 +1,21 @@
+# build output
+Debug/
+Release/
+x64/
+x86/
+build/
+
+# visual Studio stuff
+.vs/
+
+# compiled files
+*.obj
+*.exe
+*.dll
+*.pdb
+*.ilk
+
+# CMake
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
