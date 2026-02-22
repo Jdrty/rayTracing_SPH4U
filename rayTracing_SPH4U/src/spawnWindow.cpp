@@ -1,4 +1,4 @@
-#include "spawnWindow.h"
+#include "../include/spawnWindow.h"
 
 LRESULT CALLBACK winProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	switch (msg) {

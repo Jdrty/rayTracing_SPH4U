@@ -18,12 +18,12 @@
     <ClCompile Include="main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="spawnWindow.cpp">
+    <ClCompile Include="src\spawnWindow.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="spawnWindow.h">
+    <ClInclude Include="include\spawnWindow.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

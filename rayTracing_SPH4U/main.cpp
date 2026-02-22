@@ -1,5 +1,5 @@
 // main.cpp
-#include "spawnWindow.h"
+#include "include/spawnWindow.h"
 
 int main(void) {
 	spawnWindow();
