@@ -128,9 +128,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="src\renderer.cpp" />
     <ClCompile Include="src\spawnWindow.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="include\renderer.h" />
     <ClInclude Include="include\spawnWindow.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

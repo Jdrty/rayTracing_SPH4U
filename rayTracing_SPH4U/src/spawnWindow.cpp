@@ -1,4 +1,12 @@
 #include "../include/spawnWindow.h"
+#include "../include/renderer.h"
+
+// framebuffer, spawning pixels for now
+static const int FB_WIDTH = 400;
+static const int FB_HEIGHT = 300;
+static uint32_t framebuffer[FB_WIDTH * FB_HEIGHT];
+
+
 
 LRESULT CALLBACK winProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	switch (msg) {
@@ -6,7 +14,28 @@ LRESULT CALLBACK winProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	{
 		PAINTSTRUCT ps;
 		HDC hdc = BeginPaint(hwnd, &ps);
-		FillRect(hdc, &ps.rcPaint, (HBRUSH)(COLOR_WINDOW + 1)); // fill "dirty" areas
+	
+		render(framebuffer, FB_WIDTH, FB_HEIGHT);
+
+		BITMAPINFO bmi = {};
+		bmi.bmiHeader.biSize = sizeof(BITMAPINFOHEADER);
+		bmi.bmiHeader.biWidth = FB_WIDTH;
+		bmi.bmiHeader.biHeight = -FB_HEIGHT; // negative = top-down image
+		bmi.bmiHeader.biPlanes = 1;
+		bmi.bmiHeader.biBitCount = 32;
+		bmi.bmiHeader.biCompression = BI_RGB;
+
+		StretchDIBits(
+			hdc,
+			0, 0, 800, 600,              // destination (window size)
+			0, 0, FB_WIDTH, FB_HEIGHT,   // source (framebuffer size)
+			framebuffer,
+			&bmi,
+			DIB_RGB_COLORS,
+			SRCCOPY
+		);
+
+
 		EndPaint(hwnd, &ps);
 		return 0;
 	}
