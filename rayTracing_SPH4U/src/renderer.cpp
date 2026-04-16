@@ -6,6 +6,12 @@ Vec3 normalize(Vec3 v) {
     return { v.x / len, v.y / len, v.z / len };
 }
 
+// how aligned two vectors are
+// tells us how concentrated light should be
+float dot(Vec3 a, Vec3 b) {
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
 void render(uint32_t* pixels, int w, int h) {
     Sphere sphere = { {0.0f, 0.0f, -3.0f}, 1.0f };
     Vec3 origin = { 0.0f, 0.0f, 0.0f };
@@ -23,12 +29,33 @@ void render(uint32_t* pixels, int w, int h) {
 
             float t;
             if (intersectSphere(origin, dir, sphere, t)) {
-                // hit → white
-                pixels[y * w + x] = 0x00FFFFFF;
-            }
-            else {
-                // miss → black
-                pixels[y * w + x] = 0x00000000;
+
+                // compute hit point
+                Vec3 hitPoint = {
+                    origin.x + dir.x * t,
+                    origin.y + dir.y * t,
+                    origin.z + dir.z * t
+                };
+                
+                //surface normal
+                Vec3 normal = normalize({
+                    hitPoint.x - sphere.center.x,
+                    hitPoint.y - sphere.center.y,
+                    hitPoint.z - sphere.center.z
+                    });
+
+                Vec3 lightDir = normalize({ -1.0f, -1.0f, -1.0f });
+
+                // make it not look terrible
+                float ambient = 0.1f;
+
+                float brightness = dot(normal, lightDir);
+                if (brightness < 0) brightness = 0;
+
+                brightness = ambient + brightness * (1.0f - ambient);
+
+                uint8_t c = (uint8_t)(brightness * 255);
+                pixels[y * w + x] = (c << 16) | (c << 8) | c;
             }
         }
     }
