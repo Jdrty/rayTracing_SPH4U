@@ -46,6 +46,7 @@ LRESULT CALLBACK winProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
 	}
 
 	return DefWindowProc(hwnd, msg, wParam, lParam);	// let windows handle wtv else
+	InvalidateRect(hwnd, NULL, FALSE);
 }
 
 void spawnWindow() {
