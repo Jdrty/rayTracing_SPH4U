@@ -9,20 +9,16 @@ static inline Vec3 add(Vec3 a, Vec3 b) { return { a.x + b.x, a.y + b.y, a.z + b.
 static inline Vec3 sub(Vec3 a, Vec3 b) { return { a.x - b.x, a.y - b.y, a.z - b.z }; }
 static inline Vec3 mul(Vec3 a, float s) { return { a.x * s, a.y * s, a.z * s }; }
 static inline Vec3 mulV(Vec3 a, Vec3 b) { return { a.x * b.x, a.y * b.y, a.z * b.z }; }
-
 static inline float dot(Vec3 a, Vec3 b) {
     return a.x * b.x + a.y * b.y + a.z * b.z;
 }
-
 static inline Vec3 normalize(Vec3 v) {
     float len = sqrtf(dot(v, v));
     return { v.x / len, v.y / len, v.z / len };
 }
-
 static inline Vec3 reflect(Vec3 d, Vec3 n) {
     return sub(d, mul(n, 2.0f * dot(d, n)));
 }
-
 static bool refract(Vec3 d, Vec3 n, float eta, Vec3& out) {
     float cosi = -dot(d, n);
     float cost2 = 1.0f - eta * eta * (1.0f - cosi * cosi);
@@ -32,7 +28,6 @@ static bool refract(Vec3 d, Vec3 n, float eta, Vec3& out) {
     out = add(mul(d, eta), mul(n, eta * cosi - cost));
     return true;
 }
-
 static float fresnel(float cosi, float ior) {
     float r0 = (1.0f - ior) / (1.0f + ior);
     r0 *= r0;
@@ -49,8 +44,8 @@ static Vec3 sky(Vec3 rd) {
     };
 }
 
-// trace
-static Vec3 trace(Vec3 ro, Vec3 rd, Sphere* spheres, int count, int depth) {
+// trace - Added ior_offset parameter
+static Vec3 trace(Vec3 ro, Vec3 rd, Sphere* spheres, int count, int depth, float ior_offset = 0.0f) {
     if (depth > MAX_DEPTH) return { 0,0,0 };
 
     float closest = 1e30f;
@@ -105,15 +100,17 @@ static Vec3 trace(Vec3 ro, Vec3 rd, Sphere* spheres, int count, int depth) {
         // correct bias
         Vec3 origin = add(hit, mul(normal, EPSILON));
 
-        Vec3 col = trace(origin, refl, spheres, count, depth + 1);
+        // pass ior
+        Vec3 col = trace(origin, refl, spheres, count, depth + 1, ior_offset);
 
-        // ensure energy (avoid black collapse)
+        // energy heh
         return add(mulV(col, m.color), mul(m.color, 0.05f));
     }
 
     // glass
     if (m.type == DIELECTRIC) {
-        float ior = m.refractiveIndex;
+        // offset
+        float ior = m.refractiveIndex + ior_offset;
 
         float cosi = dot(rd, normal);
         float etai = 1.0f, etat = ior;
@@ -132,7 +129,9 @@ static Vec3 trace(Vec3 ro, Vec3 rd, Sphere* spheres, int count, int depth) {
         // reflection
         Vec3 reflDir = reflect(rd, normal);
         Vec3 reflOrigin = add(hit, mul(n, EPSILON));
-        Vec3 reflCol = trace(reflOrigin, reflDir, spheres, count, depth + 1);
+
+        // pass ior
+        Vec3 reflCol = trace(reflOrigin, reflDir, spheres, count, depth + 1, ior_offset);
 
         // refraction
         Vec3 refrDir;
@@ -140,7 +139,9 @@ static Vec3 trace(Vec3 ro, Vec3 rd, Sphere* spheres, int count, int depth) {
 
         if (refract(rd, n, eta, refrDir)) {
             Vec3 refrOrigin = add(hit, mul(n, -EPSILON));
-            Vec3 refrCol = trace(refrOrigin, refrDir, spheres, count, depth + 1);
+
+            // pass ior
+            Vec3 refrCol = trace(refrOrigin, refrDir, spheres, count, depth + 1, ior_offset);
 
             return {
                 reflCol.x * kr + refrCol.x * (1.0f - kr),
@@ -188,7 +189,15 @@ void render(uint32_t* pixels, int w, int h) {
                 -1.0f
                 });
 
-            Vec3 col = trace(origin, dir, spheres, count, 0);
+            // adjust spread if needed
+            float spread = 0.03f;
+
+            // trace 3 times
+            Vec3 col = {
+                trace(origin, dir, spheres, count, 0, -spread).x, // red pass
+                trace(origin, dir, spheres, count, 0, 0.0f).y,    // green pass
+                trace(origin, dir, spheres, count, 0, spread).z   // blue pass
+            };
 
             if (col.x > 1) col.x = 1;
             if (col.y > 1) col.y = 1;
