@@ -1,4 +1,6 @@
 #pragma once
+#include <cstdint>
+
 struct Vec3 {
     float x, y, z;
 };
@@ -10,10 +12,11 @@ enum MaterialType {
 };
 
 struct Material {
-    MaterialType type;
-    Vec3 color;            
-    float refractiveIndex; 
-    float reflectivity;    
+    Vec3 color;
+    int32_t type;
+    float refractiveIndex;
+    float reflectivity;
+    float padding[2];
 };
 
 struct Sphere {
