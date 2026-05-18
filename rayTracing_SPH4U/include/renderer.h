@@ -20,6 +20,8 @@ public:
 
     bool initialize(HWND hwnd, int width, int height);
     void render(const CameraState& camera);
+    bool shoot(const CameraState& camera);
+    void beginWeaponInspect();
     void shutdown();
 
     const wchar_t* lastError() const;
